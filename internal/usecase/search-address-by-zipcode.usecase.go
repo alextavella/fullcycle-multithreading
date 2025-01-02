@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"time"
 
 	"github.com/alextavella/multithreading/internal/provider"
@@ -8,7 +9,7 @@ import (
 )
 
 type ISearchAddressUsecase interface {
-	SearchByZipCode(zipCode string) (*SearchAddressUsecaseOutput, error)
+	SearchByZipCode(ctx context.Context, zipCode string) (*SearchAddressUsecaseOutput, error)
 }
 
 type SearchAddressUsecaseOutput struct {
@@ -28,16 +29,19 @@ func NewSearchAddressUsecase() ISearchAddressUsecase {
 	}
 }
 
-func (u *SearchAddressUseCase) SearchByZipCode(zipCode string) (*SearchAddressUsecaseOutput, error) {
+func (u *SearchAddressUseCase) SearchByZipCode(ctx context.Context, zipCode string) (*SearchAddressUsecaseOutput, error) {
+	context, cancel := context.WithCancel(ctx)
+
 	primaryChannel := make(chan SearchAddressUsecaseOutput)
 	secondaryChannel := make(chan SearchAddressUsecaseOutput)
 
 	// Primary provider
 	go func(ch chan SearchAddressUsecaseOutput, zipCode string) {
-		res, err := u.primaryProvider.SearchByZipCode(zipCode)
+		res, err := u.primaryProvider.SearchByZipCode(context, zipCode)
 		if err != nil {
 			return
 		}
+		cancel()
 		ch <- SearchAddressUsecaseOutput{
 			Provider: u.primaryProvider.ProviderName(),
 			Result:   *res,
@@ -46,10 +50,11 @@ func (u *SearchAddressUseCase) SearchByZipCode(zipCode string) (*SearchAddressUs
 
 	// Secondary provider
 	go func(ch chan SearchAddressUsecaseOutput, zipCode string) {
-		res, err := u.secondaryProvider.SearchByZipCode(zipCode)
+		res, err := u.secondaryProvider.SearchByZipCode(context, zipCode)
 		if err != nil {
 			return
 		}
+		cancel()
 		ch <- SearchAddressUsecaseOutput{
 			Provider: u.secondaryProvider.ProviderName(),
 			Result:   *res,

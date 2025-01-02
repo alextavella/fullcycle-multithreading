@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -22,14 +23,15 @@ func (r *BrasilAPIRepository) ProviderName() string {
 	return r.Name
 }
 
-func (r *BrasilAPIRepository) SearchByZipCode(zipcode string) (*provider.SearchAddressByZipCodeResult, error) {
-	req, _ := http.NewRequest(http.MethodGet, "https://brasilapi.com.br/api/cep/v1/"+zipcode, nil)
+func (r *BrasilAPIRepository) SearchByZipCode(ctx context.Context, zipcode string) (*provider.SearchAddressByZipCodeResult, error) {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "https://brasilapi.com.br/api/cep/v1/"+zipcode, nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, provider.ErrSearchAddressByZipCode
 	}
 
 	defer resp.Body.Close()
+	// fmt.Println("BrasilAPIRepository - SearchByZipCode - Response Status Code: ", resp.StatusCode)
 
 	if resp.StatusCode != http.StatusOK {
 		return &provider.SearchAddressByZipCodeResult{

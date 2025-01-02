@@ -1,10 +1,13 @@
 package provider
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 type IAddressProvider interface {
 	ProviderName() string
-	SearchByZipCode(zipcode string) (*SearchAddressByZipCodeResult, error)
+	SearchByZipCode(ctx context.Context, zipcode string) (*SearchAddressByZipCodeResult, error)
 }
 
 type SearchAddressByZipCodeResult struct {

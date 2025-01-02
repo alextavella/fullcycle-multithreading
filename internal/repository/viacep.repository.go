@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -22,14 +23,15 @@ func (r *ViaCEPRepository) ProviderName() string {
 	return r.Name
 }
 
-func (r *ViaCEPRepository) SearchByZipCode(zipcode string) (*provider.SearchAddressByZipCodeResult, error) {
-	req, _ := http.NewRequest(http.MethodGet, "http://viacep.com.br/ws/"+zipcode+"/json/", nil)
+func (r *ViaCEPRepository) SearchByZipCode(ctx context.Context, zipcode string) (*provider.SearchAddressByZipCodeResult, error) {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "http://viacep.com.br/ws/"+zipcode+"/json/", nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, provider.ErrSearchAddressByZipCode
 	}
 
 	defer resp.Body.Close()
+	// fmt.Println("ViaCEPRepository - SearchByZipCode - Response Status Code: ", resp.StatusCode)
 
 	if resp.StatusCode != http.StatusOK {
 		return &provider.SearchAddressByZipCodeResult{

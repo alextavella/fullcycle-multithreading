@@ -18,7 +18,7 @@ func NewAddressHandler() provider.IHandler {
 
 func (h *AddressHandler) Handle(c *fiber.Ctx) error {
 	zipCode := c.Params("zipcode")
-	result, err := h.SearchAddressUseCase.SearchByZipCode(zipCode)
+	result, err := h.SearchAddressUseCase.SearchByZipCode(c.Context(), zipCode)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
